@@ -1,0 +1,112 @@
+.parent{
+    border: 5px soloid;
+    margin: auto;
+    width: 50%;
+    margin-top: 200px;
+    height:250px;
+    padding: 10px;
+}
+
+.main{
+    margin: auto;
+    padding: 10px;
+    height:200px;
+}
+
+.popupForm{
+    display:none;
+    border: 5px;
+    border-style: solid;
+    border-color:rgb(96, 90, 182);
+    margin: 20px;
+    margin-left: 0;
+    padding: 5px;
+    width:100%;
+}
+
+/* .form{
+    border-style: solid;
+    border-color:yellow;
+    border: 3px;
+    padding:2px
+} */
+
+/* .taskElement{
+    border: 1px solid #091157;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    background-color: #f9f9f9;
+} */
+
+.taskName{
+    font-size: 30px;
+}
+.taskElement .button{
+    background-color: #a0aec7;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin:5px;
+}
+
+.tasksContainer{
+    margin:10px;
+    background-color:beige;
+}
+
+
+.completedTaskContainer{
+    margin:10px;
+}
+
+.completedTaskElement{
+    background-color: #57eb77;
+    color:black;
+    border: 2px;
+    border-style: solid;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin:5px;  
+}
+
+/* .expired{
+    background-color: rgb(211, 119, 119);
+} */
+
+
+#addTask{
+    border-radius: 100%;
+    height:40px;
+    background-color:cadetblue;
+
+}
+.nav{
+    background-color: lightgreen;
+}
+
+.pendingTaskElement{
+    background-color: #a0aec7;
+    color:black;
+    border: 2px;
+    border-style: solid;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin:5px;     
+}
+
+.expired{
+    background-color: rgb(235, 93, 93);
+    color:black;
+    border: 2px;
+    border-style: solid;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    margin:5px;
+}
