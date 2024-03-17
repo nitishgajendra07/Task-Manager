@@ -20,6 +20,7 @@ body {
 
 .nav {
     margin-bottom: 20px;
+    background-color: rgb(248, 230, 139);
 }
 
 .navButtonElement {
@@ -35,7 +36,6 @@ body {
     cursor: pointer;
     border-radius: 5px;
 }
-
 .popupForm {
     display: none;
 }
@@ -45,16 +45,19 @@ body {
     padding: 10px;
     border-radius: 5px;
 }
-
 .warning {
     color: red;
     font-weight: bold;
 }
 
+
+
 .tasksContainer, .completedTasksContainer {
     display: flex;
     flex-wrap: wrap;
 }
+
+
 
 .pendingTaskElement {
     background-color: #fff;
@@ -64,6 +67,8 @@ body {
     border-radius: 5px;
     flex: 1;
 }
+
+
 
 .completedTaskElement{
     background-color: #ace66a;
