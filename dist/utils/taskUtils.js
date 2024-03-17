@@ -1,8 +1,8 @@
 import { addNewTask, completedTasksContainer, completedTasksHeading, tasksContainer, tasksHeading } from "../app.js";
+import { alertMessages, documentElementId, placeHolders, taskElementClasses, taskObjProps } from "../components/constants.js";
 import { createTaskElement } from "../components/taskComponents.js";
+import { TaskBuilder } from "../helper/createTask.js";
 import { getJSON } from "./localStorageUtils.js";
-// let tasksContainer=document.querySelector(".tasksContainer") as HTMLDivElement;
-// let completedTasksContainer=document.querySelector(".completedTasksContainer") as HTMLDivElement;
 export function display(arrayOfObjectsToBeDisplayed) {
     while (tasksContainer.firstChild) {
         tasksContainer.removeChild(tasksContainer.firstChild);
@@ -11,47 +11,55 @@ export function display(arrayOfObjectsToBeDisplayed) {
         completedTasksContainer.removeChild(completedTasksContainer.firstChild);
     }
     let temp;
-    ;
     for (let i = 0; i < arrayOfObjectsToBeDisplayed.length; i++) {
         temp = arrayOfObjectsToBeDisplayed[i];
         if (temp.completed === false) {
-            tasksContainer.append(createTaskElement(temp));
+            let taskElement = createTaskElement(temp);
+            if (taskElement == null) {
+                alert(alertMessages.taskElementFieldsAbsent);
+            }
+            else {
+                tasksContainer.append(taskElement);
+            }
         }
         else if (temp.completed === true) {
-            completedTasksContainer.append(createTaskElement(temp));
+            let completedTaskElement = createTaskElement(temp);
+            if (completedTaskElement == null) {
+                alert(alertMessages.completedTaskFieldsAbsent);
+            }
+            else {
+                completedTasksContainer.append(completedTaskElement);
+            }
         }
     }
     checkForExpiredTasks(tasksContainer);
     getCounts();
 }
 export function checkForExpiredTasks(elementList) {
-    console.log("entered checkForExpiredTasks");
     for (let i = 0; i < elementList.children.length; i++) {
-        let dueDateTime = elementList.children[i].children[3].textContent;
-        if (dueDateTime) {
+        let dueDateTimeParent = getParticularTaskPart(elementList.children[i], taskElementClasses.dueDateTime);
+        let dueDateTime = dueDateTimeParent === null || dueDateTimeParent === void 0 ? void 0 : dueDateTimeParent.textContent;
+        if (typeof dueDateTime === "string") {
             if (new Date(dueDateTime) <= new Date()) {
-                elementList.children[i].classList.remove("pendingTaskElement");
-                elementList.children[i].classList.add("expired");
-                console.log("added expired for ", elementList.children[i]);
+                elementList.children[i].classList.remove(taskElementClasses.pendingTaskElement);
+                elementList.children[i].classList.add(taskElementClasses.expired);
             }
         }
     }
 }
-let totalCount = document.getElementById("totalCount");
-let tasksCount = document.getElementById("tasksCount");
-let completedTasksCount = document.getElementById("completedTasksCount");
-console.log("count Elements", totalCount, tasksCount, completedTasksCount);
+let totalCount = document.getElementById(documentElementId.totalCount);
+let tasksCount = document.getElementById(documentElementId.tasksCount);
+let completedTasksCount = document.getElementById(documentElementId.completedTasksCount);
 export async function getCounts() {
     let tp = await getJSON();
     if (totalCount) {
-        console.log("totalCount", totalCount);
-        totalCount.textContent = `Total : ${getTotalCount(tp)}`;
+        totalCount.textContent = `${placeHolders.Total} ${getTotalCount(tp)}`;
     }
     if (tasksCount) {
-        tasksCount.textContent = `Tasks to be Completed: ${getIncompleteTasksCount(tp)}`;
+        tasksCount.textContent = `${placeHolders.TasksToBeCompleted} ${getIncompleteTasksCount(tp)}`;
     }
     if (completedTasksCount) {
-        completedTasksCount.textContent = `Completed : ${getCompletedTasksCount(tp)}`;
+        completedTasksCount.textContent = `${placeHolders.Completed} ${getCompletedTasksCount(tp)}`;
     }
 }
 export function getTotalCount(tp) {
@@ -84,6 +92,80 @@ export async function filterForCompleted() {
     removeAllPageContents();
     display(newList);
 }
+export function getTaskObject(taskElement) {
+    var _a;
+    let tNameParent = getParticularTaskPart(taskElement, taskElementClasses.taskName);
+    if (!tNameParent) {
+        alert(alertMessages.taskNameAbsent);
+        throw new Error;
+    }
+    if (tNameParent.textContent === null) {
+        alert(alertMessages.taskNameTextContentAbsent);
+        throw new Error;
+    }
+    let tName = tNameParent.textContent;
+    let tDescriptionParent = getParticularTaskPart(taskElement, taskElementClasses.taskDescription);
+    if (tDescriptionParent === undefined) {
+        throw new Error;
+    }
+    if (tDescriptionParent.textContent === null) {
+        throw new Error;
+    }
+    let tDescription = tDescriptionParent.textContent || "";
+    let tIdParent = getParticularTaskPart(taskElement, taskElementClasses.taskId);
+    if (tIdParent == undefined) {
+        throw new Error;
+    }
+    if (tIdParent.textContent == null) {
+        throw new Error;
+    }
+    let tId = tIdParent.textContent;
+    let tDueDateTime = ((_a = getParticularTaskPart(taskElement, taskElementClasses.dueDateTime)) === null || _a === void 0 ? void 0 : _a.textContent) || "";
+    let tCompletionStatusParent = getParticularTaskPart(taskElement, taskElementClasses.completionStatus);
+    let tCompletionStatus;
+    if (tCompletionStatusParent.textContent === "true") {
+        tCompletionStatus = true;
+    }
+    else {
+        tCompletionStatus = false;
+    }
+    let taskObj = new TaskBuilder(tName, tId)
+        .setTaskDescription(tDescription)
+        .setCompletionStatus(tCompletionStatus)
+        .setDueDateTime(tDueDateTime)
+        .build();
+    return taskObj;
+}
+export function getParticularTaskPart(taskElement, classToLookFor) {
+    let newList = [...taskElement.children];
+    let particularTaskPart = newList.find((element) => {
+        if (element.classList.contains(classToLookFor))
+            return true;
+    });
+    return particularTaskPart;
+}
+export function getAllTasksInCurrentDisplay() {
+    let newTaskElementList = [...tasksContainer.children, ...completedTasksContainer.children];
+    let newTaskObjectList = [];
+    newTaskElementList.forEach((taskElement) => {
+        let taskObj = getTaskObject(taskElement);
+        newTaskObjectList.push(taskObj);
+    });
+    return newTaskObjectList;
+}
+export async function filterForCompleted2() {
+    let newTaskElementList = [...tasksContainer.children, ...completedTasksContainer.children];
+    let newTaskObjectList = [];
+    newTaskElementList.forEach((taskElement) => {
+        let taskObj = getTaskObject(taskElement);
+        newTaskObjectList.push(taskObj);
+    });
+    let filteredObjectList = newTaskObjectList.filter((taskObj) => {
+        return taskObj.completed === true;
+    });
+    removeAllPageContents();
+    display(filteredObjectList);
+}
 export function removeAllPageContents() {
     while (tasksContainer.firstChild) {
         tasksContainer.removeChild(tasksContainer.firstChild);
@@ -101,7 +183,8 @@ export function removeAllPageContents() {
         completedTasksHeading.remove();
     }
 }
-export function sortTasks(choice, tp) {
+export function sortTasks(choice) {
+    let allTaskObjectsInDisplay = getAllTasksInCurrentDisplay();
     if (choice == "A-Z") {
         let newList;
         function customSort(a, b) {
@@ -116,7 +199,7 @@ export function sortTasks(choice, tp) {
             }
             return swap;
         }
-        newList = tp.slice();
+        newList = allTaskObjectsInDisplay.slice();
         newList.sort(customSort);
         display(newList);
     }
@@ -134,7 +217,7 @@ export function sortTasks(choice, tp) {
             }
             return swap;
         }
-        newList = tp.slice();
+        newList = allTaskObjectsInDisplay.slice();
         newList.sort(customSort);
         display(newList);
     }
@@ -164,17 +247,26 @@ export function sortTasks(choice, tp) {
             }
             return swap;
         }
-        newList = tp.slice();
+        newList = allTaskObjectsInDisplay.slice();
         newList.sort(customSort);
         display(newList);
     }
 }
 export async function searchTask(str) {
     let t, temp;
-    let tp = await getJSON();
+    let allTaskObjectsInDisplay = getAllTasksInCurrentDisplay();
     let newList;
-    newList = tp.filter(function (taskObject) {
+    newList = allTaskObjectsInDisplay.filter(function (taskObject) {
         return taskObject.taskName.toLowerCase().includes(str.toLowerCase());
     });
     display(newList);
+}
+export function isTask(obj) {
+    let result = ((typeof obj === "object") &&
+        (taskObjProps.taskId in obj && typeof obj.taskId === "string") &&
+        (taskObjProps.taskName in obj && typeof obj.taskName === "string") &&
+        (taskObjProps.taskDescription in obj && typeof obj.taskDescription === "string") &&
+        (taskObjProps.dueDateTime in obj && typeof obj.dueDateTime === "string") &&
+        (taskObjProps.completed in obj && typeof obj.completed === "boolean"));
+    return result;
 }

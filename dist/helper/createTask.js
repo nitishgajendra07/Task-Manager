@@ -1,22 +1,25 @@
 export class Task {
-    constructor(taskName) {
+    constructor(taskName, taskId) {
+        this.taskDescription = "";
+        this.dueDateTime = "";
         this.taskName = taskName;
+        this.taskId = taskId;
     }
 }
 export class TaskBuilder {
-    constructor(taskName) {
-        this.task = new Task(taskName);
+    constructor(taskName, taskId) {
+        this.task = new Task(taskName, taskId);
     }
     setId(taskId) {
         this.task.taskId = taskId;
         return this;
     }
     setTaskDescription(taskDescription) {
-        this.task.taskDescription = taskDescription;
+        this.task.taskDescription = taskDescription || "";
         return this;
     }
     setDueDateTime(dueDateTime) {
-        this.task.dueDateTime = dueDateTime;
+        this.task.dueDateTime = dueDateTime || "";
         return this;
     }
     setCompletionStatus(status) {
@@ -27,6 +30,3 @@ export class TaskBuilder {
         return this.task;
     }
 }
-// function createElement(taskObj:Task){
-//     taskElement=document.createElement("div")
-// }

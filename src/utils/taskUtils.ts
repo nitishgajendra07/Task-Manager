@@ -1,231 +1,340 @@
 import { addNewTask, completedTasksContainer, completedTasksHeading, tasksContainer, tasksHeading } from "../app.js";
+import { alertMessages, documentElementId, placeHolders, taskElementClasses, taskObjProps } from "../components/constants.js";
 import { createTaskElement } from "../components/taskComponents.js";
-import { Task } from "../helper/createTask.js";
+import { Task, TaskBuilder } from "../helper/createTask.js";
 import { getJSON } from "./localStorageUtils.js";
 
 
 
-// let tasksContainer=document.querySelector(".tasksContainer") as HTMLDivElement;
-// let completedTasksContainer=document.querySelector(".completedTasksContainer") as HTMLDivElement;
+export function display(arrayOfObjectsToBeDisplayed: Task[]) {
 
-
-
-export function display(arrayOfObjectsToBeDisplayed:Task[]){
-    
-    while(tasksContainer.firstChild){
+    while (tasksContainer.firstChild) {
         tasksContainer.removeChild(tasksContainer.firstChild);
     }
 
-    while(completedTasksContainer.firstChild){
+    while (completedTasksContainer.firstChild) {
         completedTasksContainer.removeChild(completedTasksContainer.firstChild);
     }
 
-    let temp:Task;;
-    
+    let temp: Task;
 
-    for(let i=0;i<arrayOfObjectsToBeDisplayed.length;i++){
-        temp=arrayOfObjectsToBeDisplayed[i];
+    for (let i = 0; i < arrayOfObjectsToBeDisplayed.length; i++) {
+        temp = arrayOfObjectsToBeDisplayed[i];
 
-        if(temp.completed===false){
-            tasksContainer.append(createTaskElement(temp));
+        if (temp.completed === false) {
+            let taskElement = createTaskElement(temp);
+            if (taskElement == null) {
+                alert(alertMessages.taskElementFieldsAbsent);
+            }
+            else {
+                tasksContainer.append(taskElement);
+            }
+
         }
-        else if(temp.completed===true){
-            completedTasksContainer.append(createTaskElement(temp));
+        else if (temp.completed === true) {
+            let completedTaskElement = createTaskElement(temp);
+            if (completedTaskElement == null) {
+                alert(alertMessages.completedTaskFieldsAbsent);
+            } else {
+                completedTasksContainer.append(completedTaskElement);
+            }
+
         }
     }
     checkForExpiredTasks(tasksContainer);
-    getCounts()
+    getCounts();
 
 
 }
 
-export function checkForExpiredTasks(elementList:HTMLDivElement){
-    console.log("entered checkForExpiredTasks");
-    for(let i=0;i<elementList.children.length;i++){
-        let dueDateTime=elementList.children[i].children[3].textContent;
-        if(dueDateTime){
-            if(new Date(dueDateTime) <= new Date()){
-                elementList.children[i].classList.remove("pendingTaskElement");
-                elementList.children[i].classList.add("expired");
-                console.log("added expired for ", elementList.children[i] );
-                
+export function checkForExpiredTasks(elementList: HTMLDivElement) {
+    for (let i = 0; i < elementList.children.length; i++) {
+        let dueDateTimeParent = getParticularTaskPart(elementList.children[i] as HTMLDivElement, taskElementClasses.dueDateTime);
+        let dueDateTime = dueDateTimeParent?.textContent;
+        if (typeof dueDateTime === "string") {
+            if (new Date(dueDateTime) <= new Date()) {
+                elementList.children[i].classList.remove(taskElementClasses.pendingTaskElement);
+                elementList.children[i].classList.add(taskElementClasses.expired);
             }
         }
-
     }
 }
 
-let totalCount=document.getElementById("totalCount");
-let tasksCount=document.getElementById("tasksCount");
-let completedTasksCount=document.getElementById("completedTasksCount");
-console.log("count Elements",totalCount, tasksCount, completedTasksCount);
+let totalCount = document.getElementById(documentElementId.totalCount);
+let tasksCount = document.getElementById(documentElementId.tasksCount);
+let completedTasksCount = document.getElementById(documentElementId.completedTasksCount);
 
 
 
-export async function getCounts(){
-    let tp:Task[]= await getJSON()
-    if(totalCount){
-        console.log("totalCount",totalCount);
-        totalCount.textContent=`Total : ${getTotalCount(tp)}`;
+export async function getCounts() {
+    let tp: Task[] = await getJSON()
+    if (totalCount) {
+        totalCount.textContent = `${placeHolders.Total} ${getTotalCount(tp)}`;
     }
-    if(tasksCount){
-        tasksCount.textContent=`Tasks to be Completed: ${getIncompleteTasksCount(tp)}`;
+    if (tasksCount) {
+        tasksCount.textContent = `${placeHolders.TasksToBeCompleted} ${getIncompleteTasksCount(tp)}`;
     }
-    
-    if(completedTasksCount){
-        completedTasksCount.textContent=`Completed : ${getCompletedTasksCount(tp)}`;
+
+    if (completedTasksCount) {
+        completedTasksCount.textContent = `${placeHolders.Completed} ${getCompletedTasksCount(tp)}`;
     }
 
 }
-export function getTotalCount(tp:Task[]){
+export function getTotalCount(tp: Task[]) {
     return tp.length;
 }
-export function getIncompleteTasksCount(tp:Task[]){
+export function getIncompleteTasksCount(tp: Task[]) {
 
-    let tasksCount=tp.reduce((acc:number,taskObject:Task)=>{
-        if(taskObject.completed===false){
+    let tasksCount = tp.reduce((acc: number, taskObject: Task) => {
+        if (taskObject.completed === false) {
             acc += 1;
-            
+
         }
         return acc;
-    },0)
+    }, 0)
     return tasksCount;
 }
 
-export function getCompletedTasksCount(tp:Task[]){
-    let completedTasksCount=tp.reduce((acc,taskObject)=>{
-        if(taskObject.completed===true){
-            acc= acc+1
-            
+export function getCompletedTasksCount(tp: Task[]) {
+    let completedTasksCount = tp.reduce((acc, taskObject) => {
+        if (taskObject.completed === true) {
+            acc = acc + 1
+
         }
         return acc
-    },0)
+    }, 0)
     return completedTasksCount
 }
 
 
-export async function filterForCompleted(){
+export async function filterForCompleted() {
     let newList;
-    let tp= await getJSON()
-    newList=tp.filter((taskObject)=>{
-        return taskObject.completed===true
+    let tp = await getJSON()
+    newList = tp.filter((taskObject) => {
+        return taskObject.completed === true
     })
 
     removeAllPageContents()
     display(newList);
 }
 
-export function removeAllPageContents(){
-    
-    while(tasksContainer.firstChild){
-        tasksContainer.removeChild(tasksContainer.firstChild)
+export function getTaskObject(taskElement: HTMLDivElement) {
+
+    let tNameParent = getParticularTaskPart(taskElement, taskElementClasses.taskName)
+    if (!tNameParent) {
+        alert(alertMessages.taskNameAbsent)
+        throw new Error
+    }
+    if (tNameParent.textContent === null) {
+        alert(alertMessages.taskNameTextContentAbsent)
+        throw new Error
+    }
+    let tName: string = tNameParent.textContent
+
+    let tDescriptionParent = getParticularTaskPart(taskElement, taskElementClasses.taskDescription)
+    if (tDescriptionParent === undefined) {
+        throw new Error
+    }
+    if(tDescriptionParent.textContent===null){
+        throw new Error
+    }
+    let tDescription: string = tDescriptionParent.textContent || ""
+
+    let tIdParent = getParticularTaskPart(taskElement, taskElementClasses.taskId)
+    if (tIdParent == undefined) {
+        throw new Error
+    }
+    if (tIdParent.textContent == null) {
+        throw new Error
+    }
+    let tId: string = tIdParent.textContent
+
+    let tDueDateTime: string = getParticularTaskPart(taskElement, taskElementClasses.dueDateTime)?.textContent || "" 
+
+    let tCompletionStatusParent = getParticularTaskPart(taskElement, taskElementClasses.completionStatus)
+    let tCompletionStatus: boolean
+    if (tCompletionStatusParent!.textContent === "true") {
+        tCompletionStatus = true
+    }
+    else {                                           
+        tCompletionStatus = false
     }
 
-    while(completedTasksContainer.firstChild){
-        completedTasksContainer.removeChild(completedTasksContainer.firstChild)
-    }
-    if(addNewTask){
-        addNewTask.remove();
-    }
-    if(tasksHeading){
-        tasksHeading.remove();
-    }
-    if(completedTasksHeading){
-        completedTasksHeading.remove();
-    }
-    
-    
+    let taskObj: Task = new TaskBuilder(tName, tId)
+        .setTaskDescription(tDescription)
+        .setCompletionStatus(tCompletionStatus)
+        .setDueDateTime(tDueDateTime)
+        .build()
+
+    return taskObj
+
+}
+
+export function getParticularTaskPart(taskElement: HTMLDivElement, classToLookFor: string) {
+    let newList = [...taskElement.children]
+    let particularTaskPart = newList.find((element) => {
+        if (element.classList.contains(classToLookFor))
+            return true
+    })
+
+    return particularTaskPart
 
 }
 
 
-export function sortTasks(choice:string,tp:Task[]){
-    if(choice=="A-Z"){
-        let newList:Task[]
-        function customSort(a:Task,b:Task){
-            let first=a.taskName.toLowerCase();
-            let second=b.taskName.toLowerCase();
-            let swap=0;
+export function getAllTasksInCurrentDisplay(): Task[] {
+    let newTaskElementList = [...tasksContainer.children, ...completedTasksContainer.children]
 
-            if(first>second){
-                swap=1
+    let newTaskObjectList: Task[] = []
+
+    newTaskElementList.forEach((taskElement) => {
+        let taskObj: Task = getTaskObject(taskElement as HTMLDivElement)
+        newTaskObjectList.push(taskObj)
+    })
+    return newTaskObjectList
+}
+
+export async function filterForCompleted2() {
+
+    let newTaskElementList = [...tasksContainer.children, ...completedTasksContainer.children]
+
+    let newTaskObjectList: Task[] = []
+
+
+    newTaskElementList.forEach((taskElement) => {
+        let taskObj: Task = getTaskObject(taskElement as HTMLDivElement)
+        newTaskObjectList.push(taskObj)
+    })
+    let filteredObjectList: Task[] = newTaskObjectList.filter((taskObj) => {
+        return taskObj.completed === true
+    })
+
+    removeAllPageContents();
+    display(filteredObjectList);
+}
+
+export function removeAllPageContents() {
+
+    while (tasksContainer.firstChild) {
+        tasksContainer.removeChild(tasksContainer.firstChild);
+    }
+
+    while (completedTasksContainer.firstChild) {
+        completedTasksContainer.removeChild(completedTasksContainer.firstChild);
+    }
+    if (addNewTask) {
+        addNewTask.remove();
+    }
+    if (tasksHeading) {
+        tasksHeading.remove();
+    }
+    if (completedTasksHeading) {
+        completedTasksHeading.remove();
+    }
+
+}
+
+
+export function sortTasks(choice: string) {
+    let allTaskObjectsInDisplay = getAllTasksInCurrentDisplay()
+    if (choice == "A-Z") {
+        let newList: Task[]
+        function customSort(a: Task, b: Task) {
+            let first = a.taskName.toLowerCase();
+            let second = b.taskName.toLowerCase();
+            let swap = 0;
+
+            if (first > second) {
+                swap = 1;
             }
-            else if(first < second){
-                swap=-1
+            else if (first < second) {
+                swap = -1;
             }
             return swap;
         }
-        
-        newList=tp.slice();
-        newList.sort(customSort)
-        display(newList)
-        
-}
-else if(choice==="Z-A"){
-    let newList:Task[]
-    function customSort(a:Task,b:Task){
-        let first=a.taskName.toLowerCase();
-        let second=b.taskName.toLowerCase();
-        let swap=0;
 
-        if(first>second){
-            swap=-1
-        }
-        else if(first < second){
-            swap=1
-        }
-        return swap;
+        newList = allTaskObjectsInDisplay.slice();
+        newList.sort(customSort);
+        display(newList);
+
     }
-    
-    newList=tp.slice();
-    newList.sort(customSort)
-    display(newList)
-}
-else  if(choice=="date"){
-    let newList;
-    function customSort(a:Task,b:Task){
-        if(a.dueDateTime===undefined){
-            a.dueDateTime="";
-        }
-        if(b.dueDateTime===undefined){
-            b.dueDateTime="";
-        }
-        let first=a.dueDateTime.toLowerCase();
-        let second=b.dueDateTime.toLowerCase();
-        let swap=0;
+    else if (choice === "Z-A") {
+        let newList: Task[]
+        function customSort(a: Task, b: Task) {
+            let first = a.taskName.toLowerCase();
+            let second = b.taskName.toLowerCase();
+            let swap = 0;
 
-        if(a.dueDateTime===""){
-            return 1;
-        }
-        if(b.dueDateTime===""){
-            return -1;
+            if (first > second) {
+                swap = -1;
+            }
+            else if (first < second) {
+                swap = 1
+            }
+            return swap;
         }
 
-        if(first>second){
-            swap=1;
-        }
-        else if(first < second){
-            swap=-1;
-        }
-        return swap;
+        newList = allTaskObjectsInDisplay.slice();
+        newList.sort(customSort);
+        display(newList);
     }
-    
-    newList=tp.slice();
-    newList.sort(customSort);
-    display(newList);
+    else if (choice == "date") {
+        let newList;
+        function customSort(a: Task, b: Task) {
+            if (a.dueDateTime === undefined) {
+                a.dueDateTime = "";
+            }
+            if (b.dueDateTime === undefined) {
+                b.dueDateTime = "";
+            }
+            let first = a.dueDateTime.toLowerCase();
+            let second = b.dueDateTime.toLowerCase();
+            let swap = 0;
+
+            if (a.dueDateTime === "") {
+                return 1;
+            }
+            if (b.dueDateTime === "") {
+                return -1;
+            }
+
+            if (first > second) {
+                swap = 1;
+            }
+            else if (first < second) {
+                swap = -1;
+            }
+            return swap;
+        }
+
+        newList = allTaskObjectsInDisplay.slice();
+        newList.sort(customSort);
+        display(newList);
+    }
 }
 
-}
-
-
-export async function searchTask(str:string){
-    let t,temp;
-    let tp= await getJSON();
+export async function searchTask(str: string) {
+    let t, temp;
+    let allTaskObjectsInDisplay = getAllTasksInCurrentDisplay()
     let newList;
-    newList=tp.filter(function (taskObject){
+    newList = allTaskObjectsInDisplay.filter(function (taskObject) {
 
         return taskObject.taskName.toLowerCase().includes(str.toLowerCase());
     })
-    
+
     display(newList);
+}
+
+
+export function isTask(obj:Task):obj is Task{
+    let result= (
+                  (typeof obj === "object") &&
+                  (taskObjProps.taskId in obj && typeof obj.taskId==="string") &&
+                  (taskObjProps.taskName in obj && typeof obj.taskName==="string") &&
+                  (taskObjProps.taskDescription in obj && typeof obj.taskDescription==="string") &&
+                  (taskObjProps.dueDateTime in obj && typeof obj.dueDateTime==="string") &&
+                  (taskObjProps.completed in obj && typeof obj.completed==="boolean")
+                );
+    return result;
+
 }

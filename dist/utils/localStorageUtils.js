@@ -1,4 +1,4 @@
-import { isTask } from "../app.js";
+import { isTask } from "./taskUtils.js";
 export async function getJSON() {
     let data = await localStorage.getItem("tasks");
     let dataParsed;
@@ -23,14 +23,11 @@ export async function getJSON() {
     return dataParsed;
 }
 export async function pushChangesToLocalStorage(tp) {
-    localStorage.setItem("tasks", JSON.stringify(tp));
-    console.log("In pushChangesTols", localStorage.getItem("tasks"));
-    return localStorage.getItem("tasks");
+    await localStorage.setItem("tasks", JSON.stringify(tp));
 }
 export async function removeInLocalStorage(taskId) {
     let t, temp;
     let tp = await getJSON();
-    temp = {};
     for (let i = 0; i < tp.length; i++) {
         if (tp[i].taskId === taskId.toString()) {
             tp.splice(i, 1);
@@ -38,6 +35,28 @@ export async function removeInLocalStorage(taskId) {
         }
     }
     await pushChangesToLocalStorage(tp);
-    // getCounts(tp)
     return tp;
+}
+export async function addNewTaskToLS(taskObj) {
+    let tp = await getJSON();
+    tp.unshift(taskObj);
+    await pushChangesToLocalStorage(tp);
+}
+export async function computeNewId() {
+    let tp = await getJSON();
+    let newId = 0;
+    if (tp.length > 0) {
+        let max = 0;
+        for (let i = 0; i < tp.length; i++) {
+            let taskIdnum = parseInt(tp[i].taskId);
+            if (taskIdnum > max) {
+                max = taskIdnum;
+            }
+        }
+        newId = max + 1;
+    }
+    else {
+        newId = 1;
+    }
+    return newId.toString();
 }

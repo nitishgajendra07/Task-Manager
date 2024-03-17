@@ -1,26 +1,23 @@
-import { deleteTaskButtonHandler } from "../components/eventListenerCallbacks.js"
-import { ITask } from "../types.js"
-import { removeInLocalStorage } from "../utils/localStorageUtils.js"
+import { ITask } from "./interfaces"
 
 
 export class Task implements ITask{
-    taskId?:string
+    taskId:string
     taskName:string
-    taskDescription?:string
-    dueDateTime?:string
+    taskDescription:string=""
+    dueDateTime:string=""
     completed?:boolean
-    constructor(taskName:string){
+    constructor(taskName:string, taskId:string){
         this.taskName=taskName
+        this.taskId=taskId
     }
 
 }
 
-
-
 export class TaskBuilder{
     task:Task
-    constructor(taskName:string){
-        this.task= new Task(taskName)
+    constructor(taskName:string, taskId:string){
+        this.task= new Task(taskName, taskId)
 
     }
 
@@ -30,12 +27,12 @@ export class TaskBuilder{
     }
 
     setTaskDescription(taskDescription:string){
-        this.task.taskDescription=taskDescription
+        this.task.taskDescription=taskDescription  || ""
         return this
     }
 
     setDueDateTime(dueDateTime:string){
-        this.task.dueDateTime=dueDateTime
+        this.task.dueDateTime=dueDateTime || ""
         return this
     }
 
@@ -48,17 +45,5 @@ export class TaskBuilder{
         return this.task
     }
 }
-
-
-// function createElement(taskObj:Task){
-//     taskElement=document.createElement("div")
-
-// }
-
-
-
-
-
-
 
 

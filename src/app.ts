@@ -1,47 +1,52 @@
 
+import { documentElementClass, documentElementId } from "./components/constants.js";
 import { addButtonHandler, addNewTaskButtonHandler, filterForCompletedButtonHandler, searchButtonHandler, sortByButtonHandler } from "./components/eventListenerCallbacks.js";
 import { Task } from "./helper/createTask.js";
+import { taskManager } from "./helper/observerPattern/Observable.js";
+import { TaskObserver } from "./helper/observerPattern/TaskObserver.js";
 import { getJSON } from "./utils/localStorageUtils.js";
 import { display } from "./utils/taskUtils.js";
 
 
 
 
-export let popupForm=document.querySelector(".popupForm") as HTMLDivElement;
-
-console.log("app.ts/js");
-// localStorage.setItem("tasks","[1,2,3]")
+export let popupForm=document.querySelector(`${documentElementClass.cssClassSelector}${documentElementClass.popupForm}`) as HTMLDivElement;
 
 
-export let tasksContainer=document.querySelector(".tasksContainer") as HTMLDivElement;
-console.log("tasksContainer",tasksContainer);
-export let completedTasksContainer=document.querySelector(".completedTasksContainer") as HTMLDivElement;
-console.log("completedTasksContainer",completedTasksContainer);
+export let tasksContainer=document.querySelector(`${documentElementClass.cssClassSelector}${documentElementClass.tasksContainer}`) as HTMLDivElement;
 
-export let addNewTask=document.querySelector("#addNewTask") as HTMLButtonElement;
+export let completedTasksContainer=document.querySelector(`${documentElementClass.cssClassSelector}${documentElementClass.completedTasksContainer}`) as HTMLDivElement;
 
-export let add=document.querySelector("#add") as HTMLButtonElement;
 
-export let tasksHeading=document.getElementById("tasksHeading");
+export let addNewTask=document.getElementById(documentElementId.addNewTask) as HTMLButtonElement;
 
-export let completedTasksHeading=document.getElementById("completedTasksHeading");
+export let add=document.getElementById(documentElementId.add) as HTMLButtonElement;
 
-export let searchInput=document.getElementById("searchInput") as HTMLInputElement;
+export let tasksHeading=document.getElementById(documentElementId.tasksHeading);
 
-export let searchButton= document.getElementById("searchButton") as HTMLButtonElement;
+export let completedTasksHeading=document.getElementById(documentElementId.completedTasksHeading);
 
-export let filterButton=document.getElementById("filterButton");
+export let searchInput=document.getElementById(documentElementId.searchInput) as HTMLInputElement;
 
-export let sortBy=document.getElementById("sortBy") as HTMLSelectElement;
+export let searchButton= document.getElementById(documentElementId.searchButton) as HTMLButtonElement;
+
+export let filterButton=document.getElementById(documentElementId.filterButton);
+
+export let sortBy=document.getElementById(documentElementId.sortBy) as HTMLSelectElement;
 
 window.addEventListener("load",main);
 
 export async function main(){
-    console.log("main");
-    let taskData= await getJSON();
-    console.log(taskData);
+
+    let taskData:Task[]= await getJSON();
+    taskManager.setAllTasks(taskData)
+    let taskObserver:TaskObserver= new TaskObserver()
+
+
+
     display(taskData);
-    
+    console.log(`${document.body.innerHTML}`);
+ 
     addNewTask.addEventListener("click",addNewTaskButtonHandler);
 
     
@@ -77,18 +82,7 @@ export async function main(){
 
 
 
-export function isTask(obj:Task):obj is Task{
-    let result= (
-                  (typeof obj === "object") &&
-                  ("taskId" in obj && typeof obj.taskId==="string") &&
-                  ("taskName" in obj && typeof obj.taskName==="string") &&
-                  ("taskDescription" in obj && typeof obj.taskDescription==="string") &&
-                  ("dueDateTime" in obj && typeof obj.dueDateTime==="string") &&
-                  ("completed in obj" && typeof obj.completed==="boolean")
-                );
-    return result;
 
-}
 
 
 
