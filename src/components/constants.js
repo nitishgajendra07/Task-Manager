@@ -1,12 +1,12 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+exports.__esModule = true;
 exports.taskObjProps = exports.placeHolders = exports.documentElementClass = exports.documentElementId = exports.taskElementClasses = exports.alertMessages = void 0;
 exports.alertMessages = {
     dateInput: "Date should be greater than now",
     taskContainerNotFound: "taskContainer is not present check html page",
     completedTasksContainerNotFound: "completedTasksContainer is empty. check HTML page",
-    taskElementFieldsAbsent: `taskElement does not have all fields`,
-    completedTaskFieldsAbsent: `completedTaskElement does not have all fields`,
+    taskElementFieldsAbsent: "taskElement does not have all fields",
+    completedTaskFieldsAbsent: "completedTaskElement does not have all fields",
     taskNameAbsent: "taskNameElement absent",
     taskNameTextContentAbsent: "taskNameELement textContent absent",
     taskCreationFailed: "could not create a task. Try again"

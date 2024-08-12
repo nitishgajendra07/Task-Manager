@@ -1,4 +1,7 @@
-export class Task {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TaskBuilder = exports.Task = void 0;
+class Task {
     constructor(taskName, taskId) {
         this.taskDescription = "";
         this.dueDateTime = "";
@@ -6,7 +9,8 @@ export class Task {
         this.taskId = taskId;
     }
 }
-export class TaskBuilder {
+exports.Task = Task;
+class TaskBuilder {
     constructor(taskName, taskId) {
         this.task = new Task(taskName, taskId);
     }
@@ -30,3 +34,4 @@ export class TaskBuilder {
         return this.task;
     }
 }
+exports.TaskBuilder = TaskBuilder;

@@ -171,7 +171,7 @@ export function getTaskObject(taskElement: HTMLDivElement) {
 }
 
 export function getParticularTaskPart(taskElement: HTMLDivElement, classToLookFor: string) {
-    let newList = [...taskElement.children]
+    let newList = Array.from(taskElement.children)
     let particularTaskPart = newList.find((element) => {
         if (element.classList.contains(classToLookFor))
             return true
@@ -183,7 +183,7 @@ export function getParticularTaskPart(taskElement: HTMLDivElement, classToLookFo
 
 
 export function getAllTasksInCurrentDisplay(): Task[] {
-    let newTaskElementList = [...tasksContainer.children, ...completedTasksContainer.children]
+    let newTaskElementList = [...Array.from(tasksContainer.children), ...Array.from(completedTasksContainer.children)]
 
     let newTaskObjectList: Task[] = []
 
@@ -196,7 +196,7 @@ export function getAllTasksInCurrentDisplay(): Task[] {
 
 export async function filterForCompleted2() {
 
-    let newTaskElementList = [...tasksContainer.children, ...completedTasksContainer.children]
+    let newTaskElementList = [...Array.from(tasksContainer.children), ...Array.from(completedTasksContainer.children)]
 
     let newTaskObjectList: Task[] = []
 
@@ -236,82 +236,38 @@ export function removeAllPageContents() {
 
 
 export function sortTasks(choice: string) {
-    let allTaskObjectsInDisplay = getAllTasksInCurrentDisplay()
-    if (choice == "A-Z") {
-        let newList: Task[]
-        function customSort(a: Task, b: Task) {
-            let first = a.taskName.toLowerCase();
-            let second = b.taskName.toLowerCase();
-            let swap = 0;
+    let allTaskObjectsInDisplay = getAllTasksInCurrentDisplay();
+    let newList: Task[] = allTaskObjectsInDisplay.slice();
 
-            if (first > second) {
-                swap = 1;
-            }
-            else if (first < second) {
-                swap = -1;
-            }
-            return swap;
-        }
+    const customSortAZ = (a: Task, b: Task) => {
+        let first = a.taskName.toLowerCase();
+        let second = b.taskName.toLowerCase();
+        return first > second ? 1 : first < second ? -1 : 0;
+    };
 
-        newList = allTaskObjectsInDisplay.slice();
-        newList.sort(customSort);
-        display(newList);
+    const customSortZA = (a: Task, b: Task) => {
+        let first = a.taskName.toLowerCase();
+        let second = b.taskName.toLowerCase();
+        return first > second ? -1 : first < second ? 1 : 0;
+    };
 
+    const customSortByDate = (a: Task, b: Task) => {
+        if (!a.dueDateTime) return 1;
+        if (!b.dueDateTime) return -1;
+        return new Date(a.dueDateTime) > new Date(b.dueDateTime) ? 1 : -1;
+    };
+
+    if (choice === "A-Z") {
+        newList.sort(customSortAZ);
+    } else if (choice === "Z-A") {
+        newList.sort(customSortZA);
+    } else if (choice === "date") {
+        newList.sort(customSortByDate);
     }
-    else if (choice === "Z-A") {
-        let newList: Task[]
-        function customSort(a: Task, b: Task) {
-            let first = a.taskName.toLowerCase();
-            let second = b.taskName.toLowerCase();
-            let swap = 0;
 
-            if (first > second) {
-                swap = -1;
-            }
-            else if (first < second) {
-                swap = 1
-            }
-            return swap;
-        }
-
-        newList = allTaskObjectsInDisplay.slice();
-        newList.sort(customSort);
-        display(newList);
-    }
-    else if (choice == "date") {
-        let newList;
-        function customSort(a: Task, b: Task) {
-            if (a.dueDateTime === undefined) {
-                a.dueDateTime = "";
-            }
-            if (b.dueDateTime === undefined) {
-                b.dueDateTime = "";
-            }
-            let first = a.dueDateTime.toLowerCase();
-            let second = b.dueDateTime.toLowerCase();
-            let swap = 0;
-
-            if (a.dueDateTime === "") {
-                return 1;
-            }
-            if (b.dueDateTime === "") {
-                return -1;
-            }
-
-            if (first > second) {
-                swap = 1;
-            }
-            else if (first < second) {
-                swap = -1;
-            }
-            return swap;
-        }
-
-        newList = allTaskObjectsInDisplay.slice();
-        newList.sort(customSort);
-        display(newList);
-    }
+    display(newList);
 }
+
 
 export async function searchTask(str: string) {
     let t, temp;
